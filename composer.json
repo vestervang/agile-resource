@@ -1,0 +1,27 @@
+{
+    "name": "vestervang/agile-resource",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Frederik Thomsen",
+            "email": ""
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Vestervang\\AgileResource\\": "src"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {},
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.1",
+        "orchestra/testbench": "^3.8"
+    }
+}
