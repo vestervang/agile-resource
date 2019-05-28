@@ -1,1 +1,1 @@
-Doesn't support paginated items yet
+Docs and tests will be coming soon!
