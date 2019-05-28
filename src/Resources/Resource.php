@@ -60,11 +60,11 @@ class Resource extends JsonResource
         }
 
         if ($this->resource instanceof Collection) {
-            return (new CollectionResource($this->resource, $this->fields))->toArray($request);
+            return (new ResourceCollection($this->resource, $this->fields))->toArray($request);
         }
 
         if ($this->resource instanceof LengthAwarePaginator) {
-            throw new \Exception('Paginator not supported yet!');
+            return (new ResourcePaginationCollection($this->resource, $this->fields))->toArray($request);
         }
 
         if (!$this->resource instanceof BaseModel) {
@@ -263,7 +263,7 @@ class Resource extends JsonResource
 
     protected function getRelationship($currentMap, $fields)
     {
-        $relationshipData = $this->{$currentMap['model']};
+        $relationshipData = $this->{$currentMap['backend']};
         $item = null;
         if ($relationshipData != null) {
             $relationshipType = class_basename($relationshipData);
