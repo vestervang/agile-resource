@@ -4,6 +4,9 @@ namespace Vestervang\AgileResource\Traits;
 
 trait Paginateable
 {
+    protected $defaultPerPage = 10;
+    protected $defaultPerPageLimit = 100;
+
     /**
      * Override the default getPerPage function to get the perPage variable from the get parameters
      *
@@ -16,4 +19,6 @@ trait Paginateable
         $this->setPerPage($perPage);
         return $perPage;
     }
+
+
 }
