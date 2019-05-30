@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Route;
 use Vestervang\AgileResource\Models\BaseModel;
 
 class Resource extends JsonResource
@@ -257,6 +258,11 @@ class Resource extends JsonResource
 
     protected function buildRelationshipUrl($currentMap): ?string
     {
+        if(!Route::has('posts.create') )
+        {
+            return null;
+        }
+
         $url = route($currentMap['routeName'], $this->resource->toArray());
         return strtok($url, "?");
     }
