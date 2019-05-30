@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Crypt;
 
 trait Encryptable
 {
+    protected $encryptable = [];
+
     public function __get($key)
     {
         $value = parent::getAttribute($key);
