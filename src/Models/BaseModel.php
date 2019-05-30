@@ -11,7 +11,7 @@ class BaseModel extends Model
     use Paginateable, Encryptable;
 
     protected $mapping = [];
-    protected $defaultOrderColumn = 'name';
+    protected $defaultOrderColumn = null;
     protected $defaultOrderDirection = 'desc';
     protected $sortable = ['id'];
 
