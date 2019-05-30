@@ -28,14 +28,18 @@ Builder::macro('order', function () {
 
         $key = array_search($orderBy, array_column($this->model->getMapping(), 'frontend'));
 
+        if($key === false) {
+            throw new Exception("{$orderBy} is not a valid attribute of " . get_class($this->model));
+        }
+
         $modelColumn = $this->model->getMapping()[$key]['backend'];
 
         if (!in_array($modelColumn, $this->model->getSortableColumns())) {
-            throw new HttpException(HttpCode::BAD_REQUEST, 'column ' . $orderBy . ' is not sortable');
+            throw new Exception("column {$orderBy} is not sortable",HttpCode::BAD_REQUEST);
         }
 
         if (!in_array($orderDir, $orderDirectionsPossible)) {
-            throw new HttpException(HttpCode::BAD_REQUEST, 'Order direction is invalid');
+            throw new Exception('Order direction is invalid', HttpCode::BAD_REQUEST);
         }
 
         $this->orderBy($modelColumn, $orderDir);
