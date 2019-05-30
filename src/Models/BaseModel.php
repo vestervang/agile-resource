@@ -3,9 +3,13 @@
 namespace Vestervang\AgileResource\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Vestervang\AgileResource\Traits\Encryptable;
+use Vestervang\AgileResource\Traits\Paginateable;
 
 class BaseModel extends Model
 {
+    use Paginateable, Encryptable;
+
     protected $mapping = [];
 
     /**
