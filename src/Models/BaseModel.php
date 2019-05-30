@@ -11,6 +11,9 @@ class BaseModel extends Model
     use Paginateable, Encryptable;
 
     protected $mapping = [];
+    protected $defaultOrderColumn = 'name';
+    protected $defaultOrderDirection = 'desc';
+    protected $sortable = ['id'];
 
     /**
      * @return array;
@@ -18,6 +21,21 @@ class BaseModel extends Model
     public function getMapping()
     {
         return $this->mapping;
+    }
+
+    public function getSortableColumns()
+    {
+        return $this->sortable;
+    }
+
+    public function getOrderColumn()
+    {
+        return $this->defaultOrderColumn;
+    }
+
+    public function getOrderDirection()
+    {
+        return strtolower($this->defaultOrderDirection);
     }
 
     public function hasAttribute($attr)
