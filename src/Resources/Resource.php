@@ -74,8 +74,13 @@ class Resource extends JsonResource
             throw new Exception('No mapping found');
         }
 
+        $i = 0;
         // Check if there is any fields set
-        if ($this->fields == null || (is_array($this->fields) && $this->fields[0] == '')) {
+        if (
+            $this->fields == null ||
+            $this->fields == [] ||
+            (is_array($this->fields) && isset($this->fields[0]) && $this->fields[0] == '')
+        ) {
             $this->fields = array_column($mapping, 'frontend');
         }
 
@@ -291,9 +296,9 @@ class Resource extends JsonResource
             }
 
             if ($relationshipType == 'Collection') {
-                $item = new ResourceCollection($relationshipData, $relationshipFields);
+                $item = (new ResourceCollection($relationshipData, $relationshipFields))->toArray(request());
             } else {
-                $item = new Resource($relationshipData, $relationshipFields);
+                $item = (new Resource($relationshipData, $relationshipFields))->toArray(request());
             }
         }
         return $item;
