@@ -47,12 +47,8 @@ class Resource extends JsonResource
             $this->excludeActive = true;
         }
 
-        if (is_array($this->resource)) {
-            return $this->makeArrayResponse($result);
-        }
-
-        if ($this->resource instanceof \stdClass) {
-            return $this->makeArrayResponse((array)$this->resource);
+        if (is_array($this->resource) || $this->resource instanceof \stdClass) {
+            return $this->makeArrayResponse($request);
         }
 
         // Laravel will handle the converstion of the carbon class (doesn't support the field filtering at the moment)
@@ -209,19 +205,34 @@ class Resource extends JsonResource
         return $excludes;
     }
 
-    protected function makeArrayResponse($result)
+    protected function makeArrayResponse($request)
     {
-        foreach ($this->resource as $key => $item) {
-            if ($this->excludeActive && $this->excludeKey($key)) {
+        $result = [];
+
+        if ($this->fields === null) {
+            return $this->resource;
+        }
+
+        foreach ($this->fields as $fieldKey => $fieldValue) {
+            if (is_array($fieldValue)) {
+                $key = $fieldKey;
+            } else {
+                $key = $fieldValue;
+            }
+
+            if (!isset($this->resource[$key]) || $this->excludeKey($key)) {
                 continue;
             }
 
+            $item = $this->resource[$key];
+
             if (!is_scalar($item)) {
-                $item = new Resource($item, $this->fields);
+                $item = (new Resource($item, $this->fields[$key] ?? null))->toArray($request);
             }
 
             $result[$key] = $item;
         }
+
         return $result;
     }
 
@@ -258,8 +269,8 @@ class Resource extends JsonResource
 
     protected function buildRelationshipUrl($currentMap): ?string
     {
-        if(!Route::has('posts.create') )
-        {
+        $route = $currentMap['routeName'] ?? null;
+        if (!Route::has($route)) {
             return null;
         }
 
