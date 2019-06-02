@@ -47,7 +47,11 @@ class Resource extends JsonResource
             $this->excludeActive = true;
         }
 
-        if (is_array($this->resource) || $this->resource instanceof \stdClass) {
+        if ($this->resource instanceof \stdClass) {
+            $this->resource = (array)$this->resource;
+        }
+
+        if (is_array($this->resource)) {
             return $this->makeArrayResponse($request);
         }
 
@@ -213,9 +217,9 @@ class Resource extends JsonResource
     protected function makeArrayResponse($request)
     {
         $result = [];
-
+        
         if ($this->fields === null) {
-            return $this->resource;
+            $this->fields = array_keys($this->resource);
         }
 
         foreach ($this->fields as $fieldKey => $fieldValue) {
@@ -244,32 +248,6 @@ class Resource extends JsonResource
     protected function includeRelationship($field)
     {
         return is_array($field);
-    }
-
-    protected function checkPermission($currentMap): bool
-    {
-        $hasPermission = true;
-
-        $permissions = (isset($currentMap['permissions']) && $currentMap['permissions'] !== '')
-            ? explode('|', $currentMap['permissions'])
-            : [];
-
-        foreach ($permissions as $permission) {
-            $check = false;
-            try {
-                $check = auth()->user()->hasPermissionTo($permission);
-            } catch (PermissionDoesNotExist $e) {
-                // Do nothing
-            }
-            if ($check) {
-                $hasPermission = true;
-                break;
-            } else {
-                $hasPermission = false;
-            }
-        }
-
-        return $hasPermission;
     }
 
     protected function buildRelationshipUrl($currentMap): ?string
