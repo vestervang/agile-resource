@@ -1,12 +1,21 @@
 {
     "name": "vestervang/agile-resource",
-    "license": "MIT",
+    "description": "",
+    "keywords": [],
     "authors": [
         {
-            "name": "Frederik Thomsen",
-            "email": "bla@test.com"
+            "name": "Frederik Thomsen"
         }
     ],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.1",
+        "orchestra/testbench": "^3.8"
+    },
     "autoload": {
         "psr-4": {
             "Vestervang\\AgileResource\\": "src/"
@@ -19,21 +28,11 @@
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "require": {
-        "php": "^7.0"
-    },
     "extra": {
-        "branch-alias": {
-            "dev-master": "dev-master"
-        },
         "laravel": {
             "providers": [
                 "Vestervang\\AgileResource\\ServiceProvider"
             ]
         }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^8.1",
-        "orchestra/testbench": "^3.8"
     }
 }
