@@ -217,7 +217,7 @@ class Resource extends JsonResource
     protected function makeArrayResponse($request)
     {
         $result = [];
-        
+
         if ($this->fields === null) {
             $this->fields = array_keys($this->resource);
         }
