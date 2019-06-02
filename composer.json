@@ -4,12 +4,17 @@
     "authors": [
         {
             "name": "Frederik Thomsen",
-            "email": ""
+            "email": "bla@test.com"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Vestervang\\AgileResource\\": "src"
+            "Vestervang\\AgileResource\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vestervang\\AgileResource\\Test\\": "tests/"
         }
     },
     "minimum-stability": "dev",
