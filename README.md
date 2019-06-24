@@ -1,4 +1,7 @@
 # About
+
+This is a **PoC**. The relationships will always use * to select from the DB and there is nothing preveting the n+1 problem. 
+
 This package aims to make a single resource so you don't have to make one for each model.
 
 # Features
