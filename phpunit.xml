@@ -9,7 +9,6 @@
          processIsolation="false"
          stopOnError="false"
          stopOnFailure="false"
-         syntaxCheck="true"
          verbose="true"
 >
     <testsuites>
@@ -22,4 +21,8 @@
             <directory>./src/</directory>
         </whitelist>
     </filter>
+    <php>
+        <env name="APP_URL" value="http://resource.local"/>
+        <env name="APP_ENV" value="testing"/>
+    </php>
 </phpunit>
