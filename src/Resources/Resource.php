@@ -3,32 +3,27 @@
 namespace Vestervang\AgileResource\Resources;
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Route;
+use stdClass;
 use Vestervang\AgileResource\Models\BaseModel;
 
 class Resource extends JsonResource
 {
     private $fields;
-    private $excludes;
-    private $excludeActive;
 
     public function __construct($resource, $fields = null)
     {
         parent::__construct($resource);
-
         $this->fields = $fields;
     }
 
     /**
      * Transform the resource into an array.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return array
-     * @throws \Exception
      */
     public function toArray($request): array
     {
@@ -41,13 +36,8 @@ class Resource extends JsonResource
         $result = [];
 
         $this->fields = $this->getFields($request);
-        $this->excludes = $this->getExcludedFields($request);
 
-        if ($this->fields == null && $this->excludes !== null) {
-            $this->excludeActive = true;
-        }
-
-        if ($this->resource instanceof \stdClass) {
+        if ($this->resource instanceof stdClass) {
             $this->resource = (array)$this->resource;
         }
 
@@ -69,16 +59,15 @@ class Resource extends JsonResource
         }
 
         if (!$this->resource instanceof BaseModel) {
-            throw new \Exception('Model has to extend ' . BaseModel::class . ' to be supported!');
+            throw new Exception('Model has to extend ' . BaseModel::class . ' to be supported!');
         }
 
         $mapping = $this->resource->getMapping();
 
-        if (!$mapping) {
+        if (empty($mapping)) {
             throw new Exception('No mapping found');
         }
 
-        $i = 0;
         // Check if there is any fields set
         if (
             $this->fields == null ||
@@ -88,16 +77,13 @@ class Resource extends JsonResource
             $this->fields = array_column($mapping, 'frontend');
         }
 
-        if ($this->excludeActive) {
-            $this->deleteExcluedeFields();
-        }
-
         foreach ($this->fields as $fieldKey => $field) {
-            if ($this->includeRelationship($field)) {
+            if (is_array($field)) {
                 $resultKey = $fieldKey;
             } else {
                 $resultKey = $field;
             }
+
 
             $key = array_search($resultKey, array_column($mapping, 'frontend'));
 
@@ -110,10 +96,10 @@ class Resource extends JsonResource
 
             $isRelationship = $this->resource->isRelationship($currentMap['backend']);
 
-            if (!$isRelationship) {
-                $item = $this->{$currentMap['backend']};
-            } else {
+            if ($isRelationship) {
                 $item = $this->handleRelationship($field, $currentMap);
+            } else {
+                $item = $this->{$currentMap['backend']};
             }
 
             $result[$resultKey] = $item;
@@ -196,22 +182,25 @@ class Resource extends JsonResource
 
     protected function getFields($request): ?array
     {
-        if ($this->fields == null) {
-            $fields = $this->makeRequestArray(str_replace(' ', '', $request->get('fields')));
-        } else {
-            if (is_string($this->fields)) {
-                $fields = $this->makeRequestArray(str_replace(' ', '', $this->fields));
-            } else {
-                $fields = $this->fields;
-            }
+        if (!empty($this->fields)) {
+            return $this->fields;
         }
-        return $fields;
-    }
 
-    protected function getExcludedFields($request): ?array
-    {
-        $excludes = $this->makeRequestArray($request->get('exclude'));
-        return $excludes;
+        $fields = $this->fields;
+
+        if ($request instanceof Request) {
+            $fields = $this->makeRequestArray(str_replace(' ', '', $request->get('fields')));
+        }
+
+        if (is_string($this->fields)) {
+            $fields = $this->makeRequestArray(str_replace(' ', '', $this->fields));
+        }
+
+        if(is_array($request)){
+            $fields = $request;
+        }
+
+        return $fields;
     }
 
     protected function makeArrayResponse($request)
@@ -229,7 +218,7 @@ class Resource extends JsonResource
                 $key = $fieldValue;
             }
 
-            if (!isset($this->resource[$key]) || $this->excludeKey($key)) {
+            if (!isset($this->resource[$key])) {
                 continue;
             }
 
@@ -245,11 +234,6 @@ class Resource extends JsonResource
         return $result;
     }
 
-    protected function includeRelationship($field)
-    {
-        return is_array($field);
-    }
-
     protected function buildRelationshipUrl($currentMap): ?string
     {
         $route = $currentMap['routeName'] ?? null;
@@ -261,53 +245,13 @@ class Resource extends JsonResource
         return strtok($url, "?");
     }
 
-    protected function getRelationship($currentMap, $fields)
-    {
-        $relationshipData = $this->{$currentMap['backend']};
-        $item = null;
-        if ($relationshipData != null) {
-            $relationshipType = class_basename($relationshipData);
-
-            $relationshipFields = null;
-            if (isset($fields[$currentMap['frontend']])) {
-                $relationshipFields = $fields[$currentMap['frontend']];
-            }
-
-            if ($relationshipType == 'Collection') {
-                $item = (new ResourceCollection($relationshipData, $relationshipFields))->toArray(request());
-            } else {
-                $item = (new Resource($relationshipData, $relationshipFields))->toArray(request());
-            }
-        }
-        return $item;
-    }
-
-    protected function excludeKey($key)
-    {
-        return is_array($this->excludes) ? in_array($key, $this->excludes) : false;
-    }
-
-    protected function deleteExcluedeFields()
-    {
-        foreach ($this->excludes as $exclude) {
-            $key = array_search($exclude, $this->fields);
-
-            if ($key === false) {
-                continue;
-            }
-            unset($this->fields[$key]);
-        }
-    }
-
     protected function handleRelationship($field, $map)
     {
-        $includeRelationship = $this->includeRelationship($field);
+        $isLoaded = $this->resource->relationLoaded($map['backend']);
 
-        if ($includeRelationship) {
-            $item = $this->getRelationship($map, $this->fields);
-        }
-
-        if (!$includeRelationship) {
+        if ($isLoaded) {
+            $item = (new Resource($this->resource->{$map['backend']}))->toArray($field);
+        } else {
             $item = $this->buildRelationshipUrl($map);
         }
 
