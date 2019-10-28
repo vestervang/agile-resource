@@ -33,7 +33,7 @@ class TestCase extends Orchestra
 
         // Use test User model for users provider
         $app['config']->set('auth.providers.users.model', User::class);
-        $app['config']->set('cache.prefix', 'vestervang_tests---');
+        $app['config']->set('cache.prefix', 'tests---');
     }
 
     /**

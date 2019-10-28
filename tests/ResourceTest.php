@@ -3,6 +3,7 @@
 
 namespace Vestervang\AgileResource\Test;
 
+use stdClass;
 use Vestervang\AgileResource\Resources\Resource;
 
 class ResourceTest extends TestCase
@@ -15,7 +16,7 @@ class ResourceTest extends TestCase
         $expected = [
             'Name' => 'Test',
             'Email' => 'test@email.com',
-            'Posts' => 'http://localhost/user/1/posts',
+            'Posts' => 'http://resource.local/user/1/posts',
         ];
 
         $this->assertEqualsCanonicalizing($expected, $actual);
@@ -24,10 +25,11 @@ class ResourceTest extends TestCase
     /** @test */
     public function modelWithoutRelationshipLoadedFiltered()
     {
-        $actual = (new Resource(User::find(1), ['Posts']))->toArray(request());
+        $actual = (new Resource(User::find(1), ['Email', 'Posts']))->toArray(request());
 
         $expected = [
-            'Posts' => 'http://localhost/user/1/posts',
+            'Email' => 'test@email.com',
+            'Posts' => 'http://resource.local/user/1/posts',
         ];
 
         $this->assertEqualsCanonicalizing($expected, $actual);
@@ -36,10 +38,12 @@ class ResourceTest extends TestCase
     /** @test */
     public function modelWithRelationshipLoaded()
     {
-        $actual = (new Resource(User::find(1), [
+       $user = User::with('posts')->find(1);
+
+        $actual = (new Resource($user, [
             'Name',
             'Email',
-            'Posts' => [],
+            'Posts',
         ]))->toArray(request());
 
         $expected = [
@@ -70,7 +74,7 @@ class ResourceTest extends TestCase
     /** @test */
     public function modelWithRelationshipLoadedFiltered()
     {
-        $actual = (new Resource(User::find(1), [
+        $actual = (new Resource(User::with('posts')->find(1), [
             'Name',
             'Email',
             'Posts' => [
@@ -97,11 +101,10 @@ class ResourceTest extends TestCase
         $this->assertEqualsCanonicalizing($expected, $actual);
     }
 
-
     /** @test */
     public function genericObjectNoModels()
     {
-        $obj = new \stdClass();
+        $obj = new stdClass();
 
         $obj->bear = 'claw';
         $obj->muffin = 'sesame snaps';
@@ -119,7 +122,7 @@ class ResourceTest extends TestCase
     /** @test */
     public function genericObjectNoModelsFiltered()
     {
-        $obj = new \stdClass();
+        $obj = new stdClass();
 
         $obj->bear = 'claw';
         $obj->muffin = 'sesame snaps';
@@ -136,11 +139,11 @@ class ResourceTest extends TestCase
     /** @test */
     public function genericObjectNested()
     {
-        $obj1 = new \stdClass();
+        $obj1 = new stdClass();
         $obj1->bear = 'claw';
         $obj1->muffin = 'sesame snaps';
 
-        $obj2 = new \stdClass();
+        $obj2 = new stdClass();
         $obj2->cupcake = 'chups';
 
         $obj1->gingerbread = $obj2;
@@ -161,11 +164,11 @@ class ResourceTest extends TestCase
     /** @test */
     public function genericObjectNestedFiltered()
     {
-        $obj1 = new \stdClass();
+        $obj1 = new stdClass();
         $obj1->bear = 'claw';
         $obj1->muffin = 'sesame snaps';
 
-        $obj2 = new \stdClass();
+        $obj2 = new stdClass();
         $obj2->cupcake = 'chups';
         $obj2->soufflé = 'gummies';
 
@@ -190,7 +193,7 @@ class ResourceTest extends TestCase
     /** @test */
     public function genericObjectWithModel()
     {
-        $obj = new \stdClass();
+        $obj = new stdClass();
         $obj->bear = 'claw';
         $obj->muffin = 'sesame snaps';
         $obj->user = User::find(1);
@@ -203,7 +206,7 @@ class ResourceTest extends TestCase
             'user' => [
                 'Name' => 'Test',
                 'Email' => 'test@email.com',
-                'Posts' => 'http://localhost/user/1/posts'
+                'Posts' => 'http://resource.local/user/1/posts'
             ]
         ];
 
@@ -211,7 +214,7 @@ class ResourceTest extends TestCase
     }
 
     /** @test */
-    public function pureArray()
+    public function filteredArray()
     {
         $data = [
             'bear' => 'claw',
@@ -258,7 +261,7 @@ class ResourceTest extends TestCase
     }
 
     /** @test */
-    public function arrayWithNestedModel()
+    public function arrayWithNestedModelNoRelationshipLoaded()
     {
         $data = [
             'bear' => 'claw',
@@ -290,20 +293,39 @@ class ResourceTest extends TestCase
                 'user' => [
                     'Name' => 'Test',
                     'Email' => 'test@email.com',
-                    'Posts' => 'http://localhost/user/1/posts'
+                    'Posts' => 'http://resource.local/user/1/posts'
                 ],
             ],
         ];
 
         $this->assertIsArray($actual);
         $this->assertEqualsCanonicalizing($expected, $actual);
+    }
 
+    /** @test */
+    public function arrayWithNestedModelWithRelationship()
+    {
+        $data = [
+            'bear' => 'claw',
+            'gingerbread' => [
+                'chupa',
+                'test' => 'chups',
+                'carrot',
+                'user' => User::with('posts')->find(1),
+                'cake' => [
+                    'Soufflé',
+                    'marshmallow tiramisu',
+                    'gummies'
+                ],
+            ],
+            'muffin' => 'sesame snaps',
+        ];
         $actual = (new Resource(
             $data,
             [
                 'gingerbread' => [
                     'user' => [
-                        'Posts' => []
+                        'Posts'
                     ],
                 ],
             ]
@@ -335,7 +357,5 @@ class ResourceTest extends TestCase
 
         $this->assertIsArray($actual);
         $this->assertEqualsCanonicalizing($expected, $actual);
-
-        $i = 0;
     }
 }
