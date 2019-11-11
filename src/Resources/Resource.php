@@ -11,6 +11,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Route;
 use stdClass;
 use Vestervang\AgileResource\Models\BaseModel;
+use Vestervang\AgileResource\Traits\Filterable;
 
 class Resource extends JsonResource
 {
@@ -58,7 +59,9 @@ class Resource extends JsonResource
             return (new ResourcePaginationCollection($this->resource, $this->fields))->toArray($request);
         }
 
-        if (!$this->resource instanceof BaseModel) {
+        $traits = class_uses_recursive(get_class($this->resource));
+
+        if (!in_array(Filterable::class, $traits)) {
             throw new Exception('Model has to extend ' . BaseModel::class . ' to be supported!');
         }
 
@@ -68,7 +71,6 @@ class Resource extends JsonResource
             throw new Exception('No mapping found');
         }
 
-        // Check if there is any fields set
         if (
             $this->fields == null ||
             $this->fields == [] ||
@@ -87,7 +89,6 @@ class Resource extends JsonResource
 
             $key = array_search($resultKey, array_column($mapping, 'frontend'));
 
-            // If no key is found jump to the next field
             if ($key === false) {
                 continue;
             }
@@ -170,7 +171,7 @@ class Resource extends JsonResource
 
         $splitPositions[] = $fieldsLength;
 
-        // We subtract one because we do not want to loop over the last element
+        // We do not want to loop over the last element
         $commaCount = count($splitPositions) - 1;
         for ($i = 0; $i < $commaCount; $i++) {
             $start = $splitPositions[$i];
@@ -203,7 +204,7 @@ class Resource extends JsonResource
         return $fields;
     }
 
-    protected function makeArrayResponse($request)
+    protected function makeArrayResponse($request) : array
     {
         $result = [];
 
