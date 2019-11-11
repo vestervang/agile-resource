@@ -2,10 +2,13 @@
 
 namespace Vestervang\AgileResource\Test;
 
-use Vestervang\AgileResource\Models\BaseModel;
+use Illuminate\Database\Eloquent\Model;
+use Vestervang\AgileResource\Traits\Filterable;
 
-class User extends BaseModel
+class User extends Model
 {
+    use Filterable;
+
     protected $mapping = [
         [
             'backend' => 'name',

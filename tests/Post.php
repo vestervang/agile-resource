@@ -2,10 +2,13 @@
 
 namespace Vestervang\AgileResource\Test;
 
-use Vestervang\AgileResource\Models\BaseModel;
+use Illuminate\Database\Eloquent\Model;
+use Vestervang\AgileResource\Traits\Filterable;
 
-class Post extends BaseModel
+class Post extends Model
 {
+    use Filterable;
+
     public $timestamps = false;
 
     protected $fillable = [
