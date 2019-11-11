@@ -6,6 +6,7 @@ namespace Vestervang\AgileResource\Test;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Vestervang\AgileResource\Test\Models\User;
 
 class TestCase extends Orchestra
 {

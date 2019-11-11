@@ -1,6 +1,6 @@
 <?php
 
-namespace Vestervang\AgileResource\Test;
+namespace Vestervang\AgileResource\Test\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Vestervang\AgileResource\Traits\Filterable;
